@@ -29,6 +29,7 @@ def run_ha_tests(config='my.cfg', pe_version='2017.3.0', upgrade_from='2017.2', 
 def run_frankenbuild(args):
     with cd('frankenbuilder'):
         with settings(warn_only=True):
+            run('tmux set-option history-limit 999999')
             run('tmux new-session -d -s frankenbuild')
 
         run("tmux send-keys './frankenbuilder {}'".format(args))
@@ -91,13 +92,7 @@ def connect_db(database):
 
 
 @task
-def tmux_test():
-    with cd('frankenbuilder'):
-        run('tmux set-option history-limit 999999')
-        run('tmux new-session -d -s frankenbuild')
-        run('tmux send-keys \"./frankenbuilder {}\"')
-        run('tmux send-keys ENTER')
-
-@task
 def tmux_status():
-    run('tmux capture-pane -pt "$frankenbuild:0" -S -999999')
+    output = run('tmux capture-pane -pt "$frankenbuild:0" -S -999999')
+
+    return output.stdout

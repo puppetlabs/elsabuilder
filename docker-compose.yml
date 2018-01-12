@@ -1,0 +1,23 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+    - "5000:5000"
+    volumes:
+    - .:/code
+    links:
+    - celery
+  celery:
+    build: .
+    ports:
+    - "5000:5000"
+    volumes:
+    - .:/code
+    links:
+    - rabbitmq
+  rabbitmq:
+    image: rabbitmq
+    ports:
+    - '5672:5672'
+    - '15672:15672'

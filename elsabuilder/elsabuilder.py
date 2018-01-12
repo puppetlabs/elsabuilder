@@ -3,11 +3,9 @@ import os
 import sys
 
 import click
+
 from log import Logger, logger_group, DEBUG
-from fabric.context_managers import settings
-from fabfile import *
-from fabric.contrib.project import rsync_project
-from sh import floaty
+from remote.frankenbuild import run, status
 
 #StreamHandler(sys.stdout).push_application()
 log = Logger(__name__)
@@ -38,33 +36,14 @@ def frankenbuild(host, args):
                 largs[i] = '='.join([k, remote_dir])
                 dirs_to_upload.append(v)
 
-    if not host:
-        arch = 'centos-7-x86_64'
-        res = floaty.get(arch)
-        host = json.loads(res.stdout)[arch]
-
-        with settings(host_string='root@{}'.format(host)):
-            install_updates()
-            install_tmux()
-            install_git()
-            install_rbenv()
-            install_ruby()
-            install_frankenbuilder()
-
-
-    with settings(host_string='root@{}'.format(host)):
-        for d in dirs_to_upload:
-            rsync_project(local_dir=d, remote_dir='~/', exclude=['.bundle'])
-
-        run_frankenbuild(' '.join(largs))
+    run(largs, dirs_to_upload, host)
 
 
 @cli.command()
 @click.option('--host', default=None)
 def frankenbuild_status(host):
-    with settings(host_string='root@{}'.format(host)):
-        tmux_status()
-
+    output = status(host)
+    click.echo(output)
 
 if __name__ == '__main__':
     cli()
