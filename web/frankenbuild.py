@@ -1,8 +1,18 @@
 from flask import Flask, request
-from tasks.frankenbuild import frankenbuild_run, frankenbuild_status
+
+from elsabuilder.remote.frankenbuild import get_host
+from tasks.frankenbuild import frankenbuild_install, frankenbuild_run, frankenbuild_status
 
 
 app = Flask(__name__)
+
+
+@app.route("/install")
+def install():
+    host = get_host()
+    frankenbuild_install.delay(host)
+    
+    return host
 
 
 # /frankenbuild/2017.3.x?upgrade-from=2017.2.x&install&upgrade&smoke&ha&vmpooler&keyfile=~/.ssh/id_rsa-acceptance&preserve-hosts=always&pe_install_pr=233&puppet_enterprise_pr=1398
@@ -17,7 +27,8 @@ def run(version, host=None):
         else:
             largs.append('--{}'.format(k))
 
-    host = frankenbuild_run(largs)
+    host = get_host()
+    frankenbuild_install.apply_async(kwargs={'host': host}, link=frankenbuild_run.s(largs))
     
     return host
 

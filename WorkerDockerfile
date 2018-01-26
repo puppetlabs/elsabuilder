@@ -1,0 +1,24 @@
+FROM python:2.7
+
+ADD ssh/config /root/.ssh/config
+ADD ssh/id_rsa-acceptance /root/.ssh/id_rsa-acceptance
+ADD ssh/id_rsa-elsabuilder /root/.ssh/id_rsa
+ADD ssh/id_rsa-elsabuilder.pub /root/.ssh/id_rsa.pub
+ADD . /code
+
+RUN mkdir -p /tmp/celery/results
+RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+ENV PATH="/root/.rbenv/shims:/root/.rbenv/bin:${PATH}"
+ENV PYTHONPATH="/code"
+RUN echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+RUN mkdir -p "$(rbenv root)"/plugins
+RUN git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
+RUN rbenv install -s 2.4.2 && \
+    rbenv rehash           && \
+    rbenv global 2.4.2
+RUN gem install bundle vmfloaty
+
+WORKDIR /code
+RUN pip install -r service-requirements.txt
+
+ENTRYPOINT celery worker --workdir /code -A tasks.frankenbuild

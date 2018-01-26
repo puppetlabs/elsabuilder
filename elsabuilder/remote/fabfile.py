@@ -5,12 +5,18 @@ from fabric.contrib import files
 
 # floaty get centos-7-x86_64
 env.user = 'root'
-env.key_filename = '/Users/jayson.barley/.ssh/id_rsa-acceptance'
+env.key_filename = '~/.ssh/id_rsa-acceptance'
 
 # _run = run
 
-# def run(cmd):
-#     pass
+def tmux(cmd, session='frankenbuilder'):
+    with settings(warn_only=True):
+        run('tmux set-option history-limit 999999')
+        run('tmux new-session -d -s frankenbuild')
+
+    run("tmux send-keys '{}'".format(cmd.replace("'", "\'")))
+    run('tmux send-keys ENTER')
+
 
 @task
 def run_ha_tests(config='my.cfg', pe_version='2017.3.0', upgrade_from='2017.2', upgrade_to='2017.3'):
@@ -28,12 +34,7 @@ def run_ha_tests(config='my.cfg', pe_version='2017.3.0', upgrade_from='2017.2', 
 @task
 def run_frankenbuild(args):
     with cd('frankenbuilder'):
-        with settings(warn_only=True):
-            run('tmux set-option history-limit 999999')
-            run('tmux new-session -d -s frankenbuild')
-
-        run("tmux send-keys './frankenbuilder {}'".format(args))
-        run('tmux send-keys ENTER')
+        tmux('./frankenbuilder {}'.format(args))
         
 @task
 def install_acceptance_tests():
@@ -45,6 +46,7 @@ def install_acceptance_tests():
 @task
 def install_frankenbuilder():
     put('~/.ssh', '~/', mirror_local_mode=True)
+    run('ssh-keyscan github.com >> ~/.ssh/known_hosts')
     run('git clone git@github.com:puppetlabs/frankenbuilder.git')
 
 
@@ -68,7 +70,7 @@ def install_ruby(version='2.4.2'):
 
 @task
 def install_git():
-    run('yes | yum install git')
+    run('yum -y install git')
 
 
 @task
@@ -78,7 +80,7 @@ def install_updates():
 
 @task
 def install_tmux():
-    run('yes | yum install tmux')
+    run('yum -y install tmux')
 
 
 @task
