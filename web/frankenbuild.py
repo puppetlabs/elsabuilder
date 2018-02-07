@@ -15,7 +15,7 @@ default_params = {'vmpooler': None,
 
 @app.route("/version")
 def version():
-    worker_version = get_version()
+    worker_version = get_version.get()
     return json.dumps({
         "web_image_id": os.environ["HOSTNAME"],
         "web_version": open("version").read().strip(),
