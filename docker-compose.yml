@@ -6,10 +6,10 @@ services:
       dockerfile: WebDockerfile
     ports:
     - "5000:5000"
+    volumes:
+       - ./:/code
     expose:
     - "5000"
-    volumes:
-    - .:/code
     environment:
     - CELERY_BROKER_URL=pyamqp://guest@rabbitmq//
     - CELERY_RESULT_BACKEND=database
@@ -32,3 +32,5 @@ services:
     image: rabbitmq
   couchdb:
     image: couchdb
+    ports:
+    - "5984:5984"

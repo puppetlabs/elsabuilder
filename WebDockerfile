@@ -1,11 +1,8 @@
 FROM python:2.7
 
-ADD .vmfloaty.yml /root/.vmfloaty.yml
+ENV PYTHONPATH="/code"
 ADD . /code
 
-ENV PYTHONPATH="/code"
-RUN mkdir -p /tmp/celery/results
-WORKDIR /code
 RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
 ENV PATH="/root/.rbenv/shims:/root/.rbenv/bin:${PATH}"
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
@@ -16,7 +13,9 @@ RUN rbenv install -s 2.4.2 && \
     rbenv global 2.4.2
 RUN gem install bundle vmfloaty
 
-ENV FLASK_APP=web/frankenbuild.py
+ADD .vmfloaty.yml /root/.vmfloaty.yml
+
+WORKDIR /code
 RUN pip install -r service-requirements.txt
 
 ENTRYPOINT gunicorn -w 4 -b 0.0.0.0:5000 web.frankenbuild:app
