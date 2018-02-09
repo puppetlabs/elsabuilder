@@ -1,9 +1,9 @@
 import json
-import os
 
 from celery.result import AsyncResult
 from flask import Flask, request
 
+import elsabuilder
 from elsabuilder.remote.frankenbuild import get_host
 from tasks.frankenbuild import frankenbuild_install, frankenbuild_run, frankenbuild_status, get_version
 
@@ -15,12 +15,10 @@ default_params = {'vmpooler': None,
 
 @app.route("/version")
 def version():
-    worker_version = get_version.get()
+    worker_version = get_version.delay().get()
     return json.dumps({
-        "web_image_id": os.environ["HOSTNAME"],
-        "web_version": open("version").read().strip(),
-        "worker_image_id": worker_version['worker_image_id'],
-        "worker_version": worker_version['worker_version'],
+        "web": elsabuilder.version_info,
+        "worker": worker_version,
         })
 
 
@@ -54,10 +52,21 @@ def run(version, host=None):
 @app.route("/status/<host>")
 def status(host):
     res = AsyncResult(host)
-    if res.ready():
+    if res.failed():
+        status = {
+            'status': 'failed',
+            'message': res.result.message,
+            }
+        if 'debug' in request.args:
+            status['output'] = res.traceback
+        output = json.dumps(status)
+    elif res.ready():
         job = frankenbuild_status.delay(host)
         output = job.get()
     else:
-        output = 'Setting up host: {}'.format(host)
+        output = json.dumps({
+            'status': 'installing',
+            'message': 'Setting up host: {}'.format(host),
+            })
 
     return output.replace('\n', '<br>')

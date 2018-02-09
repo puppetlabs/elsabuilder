@@ -1,7 +1,6 @@
-import os
-
 from celery import Celery
 
+import elsabuilder
 from elsabuilder.remote.frankenbuild import install, run, status
 
 
@@ -10,10 +9,7 @@ app = Celery('tasks', broker='pyamqp://guest@localhost//', backend='couchdb://co
 
 @app.task()
 def get_version():
-    return {
-        "worker_image_id": os.environ["HOSTNAME"],
-        "worker_version": open("version").read().strip(),
-        }
+    return elsabuilder.version_info
 
 
 @app.task()
