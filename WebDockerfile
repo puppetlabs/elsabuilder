@@ -1,21 +1,18 @@
-FROM python:2.7
+FROM ruby:2.4-stretch
 
 ENV PYTHONPATH="/code"
 ADD . /code
 
-RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-ENV PATH="/root/.rbenv/shims:/root/.rbenv/bin:${PATH}"
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
-RUN mkdir -p "$(rbenv root)"/plugins
-RUN git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
-RUN rbenv install -s 2.4.2 && \
-    rbenv rehash           && \
-    rbenv global 2.4.2
 RUN gem install bundle vmfloaty
 
 ADD .vmfloaty.yml /root/.vmfloaty.yml
 
 WORKDIR /code
+RUN set -ex \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends python-dev python-pip python-setuptools python-wheel \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN pip install -r service-requirements.txt
 
 ENTRYPOINT gunicorn -w 4 -b 0.0.0.0:5000 web.frankenbuild:app
