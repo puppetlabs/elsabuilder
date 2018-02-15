@@ -1,0 +1,13 @@
+FROM infracore/elsabuilder_secrets
+
+ENV code /code
+WORKDIR $code
+
+ENV PYTHONPATH="${code}"
+ADD . $code
+
+ADD .vmfloaty.yml /root/.vmfloaty.yml
+
+RUN pip install -r service-requirements.txt
+
+ENTRYPOINT celery worker --workdir /code -A tasks.frankenbuild

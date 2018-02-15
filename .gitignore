@@ -1,3 +1,6 @@
+# Keep me out of git :)
+ssh/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
