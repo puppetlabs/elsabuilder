@@ -1,9 +1,7 @@
 version: '3'
 services:
   web:
-    build:
-      context: .
-      dockerfile: WebDockerfile
+    image: 'pcr-internal.puppet.net/infracore/elsabuilder_web'
     ports:
     - "5000:5000"
     volumes:
@@ -18,9 +16,7 @@ services:
     - rabbitmq
     - couchdb
   worker:
-    build:
-      context: .
-      dockerfile: WorkerDockerfile
+    image: 'pcr-internal.puppet.net/infracore/elsabuilder_worker'
     environment:
     - CELERY_BROKER_URL=pyamqp://guest@rabbitmq//
     - CELERY_RESULT_BACKEND=database
