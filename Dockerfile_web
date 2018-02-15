@@ -1,4 +1,4 @@
-FROM infracore/elsabuilder_base
+FROM pcr-internal.puppet.net/infracore/elsabuilder_base
 
 ENV code /code
 WORKDIR $code
