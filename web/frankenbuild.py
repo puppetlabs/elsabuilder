@@ -63,6 +63,19 @@ def status(host):
     elif res.ready():
         job = frankenbuild_status.delay(host)
         output = job.get()
+    elif res.state == 'PROGRESS':
+        status = {
+            'status': 'installing',
+            'message': job.info.get('message', 'Setting up host {}'.format(host))
+            }
+
+        output = json.dumps(status)
+    elif res.state == 'PENDING':
+        status = {
+            'status': 'unknown',
+            'message': 'The host configuration has not started or a bad hostname was provided',
+            }
+        output = json.dumps(status)
     else:
         output = json.dumps({
             'status': 'installing',
