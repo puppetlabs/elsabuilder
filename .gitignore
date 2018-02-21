@@ -1,5 +1,7 @@
 # Keep me out of git :)
 ssh/
+docker-compose.merged.yml
+docker-compose.override.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

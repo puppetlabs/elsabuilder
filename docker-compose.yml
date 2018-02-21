@@ -10,7 +10,7 @@ services:
     - CELERY_BROKER_URL=pyamqp://guest@rabbitmq//
     - CELERY_RESULT_BACKEND=database
     - CELERY_RESULT_DBURI=couchdb://couchdb:5984
-    - SERVICE_NAME=elsabuilder
+    - SERVICE_5000_NAME=elsabuilder
     links:
     - rabbitmq
     - couchdb
@@ -25,9 +25,13 @@ services:
     - couchdb
   rabbitmq:
     image: rabbitmq
+    environment:
+    - SERVICE_IGNORE=true
   couchdb:
     image: couchdb
     ports:
     - "5984:5984"
     environment:
-    - SERVICE_NAME=elsabuilder_db
+    - SERVICE_5984_NAME=elsabuilder_db
+    - SERVICE_4369_IGNORE=true
+    - SERVICE_9100_IGNORE=true
