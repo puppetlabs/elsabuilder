@@ -1,0 +1,45 @@
+infracore/elsabuilder:
+  PreBuild:
+    - docker pull hairyhenderson/figlet
+  Build:
+    - git rev-parse HEAD > version
+    - echo "$PFC_TOKEN" | docker login -u "TOKEN" --password-stdin pcr-internal.puppet.net
+    - docker run --rm hairyhenderson/figlet Building web
+    - docker build --quiet=false -t pcr-internal.puppet.net/infracore/elsabuilder_web -f Dockerfile_web .
+    - docker run --rm hairyhenderson/figlet Building worker
+    - docker build --quiet=false -t pcr-internal.puppet.net/infracore/elsabuilder_worker -f Dockerfile_worker .
+  AfterBuildSuccess:
+    - docker run --rm hairyhenderson/figlet Tagging $DISTELLI_BUILDNUM
+    - docker tag pcr-internal.puppet.net/infracore/elsabuilder_web "pcr-internal.puppet.net/infracore/elsabuilder_web:$DISTELLI_BUILDNUM"
+    - docker tag pcr-internal.puppet.net/infracore/elsabuilder_worker "pcr-internal.puppet.net/infracore/elsabuilder_worker:$DISTELLI_BUILDNUM"
+    - docker run --rm hairyhenderson/figlet Pushing $DISTELLI_BUILDNUM
+    - docker push "pcr-internal.puppet.net/infracore/elsabuilder_web:$DISTELLI_BUILDNUM"
+    - docker push "pcr-internal.puppet.net/infracore/elsabuilder_worker:$DISTELLI_BUILDNUM"
+  PreRelease:
+    - |
+        cat << EOF > docker-compose.override.yml
+        version: '3'
+        services:
+          web:
+            image: 'pcr-internal.puppet.net/infracore/elsabuilder_web:$DISTELLI_BUILDNUM'
+          worker:
+            image: 'pcr-internal.puppet.net/infracore/elsabuilder_worker:$DISTELLI_BUILDNUM'
+        EOF
+  PkgInclude:
+    - docker-compose.yml
+    - docker-compose.override.yml
+  PreInstall:
+    - echo "$PFC_TOKEN" | docker login -u "TOKEN" --password-stdin pcr-internal.puppet.net
+  Exec:
+    #When stop is run, call docker-compose stop
+    - trap "/usr/local/bin/docker-compose stop" SIGTERM
+    #Start the docker containers
+    - /usr/local/bin/docker-compose up --remove-orphans &
+    #Wait for last command to complete
+    - wait
+    #Ensure we exit gracefully
+    - "true"
+  Terminate:
+    - /usr/local/bin/docker-compose kill
+  PostTerminate:
+    - /usr/local/bin/docker-compose rm --force -v
