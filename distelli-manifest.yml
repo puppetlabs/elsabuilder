@@ -18,7 +18,7 @@ infracore/elsabuilder:
   PreRelease:
     - |
         cat << EOF > docker-compose.override.yml
-        version: '2'
+        version: '3'
         services:
           web:
             image: 'pcr-internal.puppet.net/infracore/elsabuilder_web:$DISTELLI_BUILDNUM'
