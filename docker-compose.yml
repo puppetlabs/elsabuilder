@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   web:
     image: 'pcr-internal.puppet.net/infracore/elsabuilder_web'
