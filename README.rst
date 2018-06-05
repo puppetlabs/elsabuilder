@@ -8,11 +8,28 @@ Elsabuilder
      :target: https://pyup.io/repos/github/barleyj-puppet/elsabuilder/
      :alt: Updates
 
+Service
+--------
+Elsabuilder is running as a service in our own cluster and can be accessed through a RESTlike interface. Instead of using arguments on the commandline, you convert those to query parameters for running frankenbuilder. The service does support specifying PR's for testing changes. The request will return the vmpooler host frankenbuilder is running on. Elsabuilder will provide the keyfile and vmpooler arguments for you when used as a service.::
 
-Python utility that runs frankenbuilder on a vmpooler host. If --host is not specified, it will use vmfloaty to get a 'centos-7-x86_64' image, isntall all libraries needed for frankenbulder and run frankenbuild with any arguments specified on the command line. If any Frankenbuilder arguments have values that are directories on your localhost, it will rsync those directories to the remote host in the root home directory and update the paths specified to frankenbuilder.
+      http://elsabuilder.service.consul.puppet.net:5000/frankenbuild/2016.4.x?install&preserve-hosts=always&pe_manager_pr=5&pe_install_pr=132
+
+      ssgxdr4ry99q1jz.delivery.puppetlabs.net
+
+The request above will run frankenbuilder to build a tarball using the changes in the PR #5 of the puppetlabs-pe_manager repos and PR # 132 in the puppetlabs-pe_install repo, install 2016.4.x and preserve the hosts.
+
+To track the frankenbuilder run, you can query the status endpoint or ssh into the host and attach to the tmux session.
+
+      http://elsabuilder.service.consul.puppet.net:5000/status/ssgxdr4ry99q1jz.delivery.puppetlabs.net
+
+Note that setting up frankenbuilder on the host may take a little while and elsabuilder will not be able to report on the status until then. If you have local changes you want to test, please use the CLI below to test these changes.
+
+CLI
+--------
+Python utility and that runs frankenbuilder on a vmpooler host. If --host is not specified, it will use vmfloaty to get a 'centos-7-x86_64' image, install all libraries needed for frankenbuilder and run frankenbuild with any arguments specified on the command line. If any Frankenbuilder arguments have values that are directories on your localhost, it will rsync those directories to the remote host in the root home directory and update the paths specified to frankenbuilder.
 
 
-Insallation
+Installation
 --------
 * Clone the repo.::
 
